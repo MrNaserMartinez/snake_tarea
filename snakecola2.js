@@ -1,3 +1,4 @@
+//funcional
 class Queue {
     constructor(maxSize) {
         this.maxSize = maxSize; // Tamaño máximo de la cola
@@ -50,59 +51,66 @@ class Queue {
     size() {
         return this.items.length;
     }
+
+    // Obtener una copia de los elementos de la cola
+    getItems() {
+        return [...this.items];
+    }
 }
 
-const canvas = document.getElementById('snakeCanvas');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById("snakeCanvas");
+const ctx = canvas.getContext("2d");
 const box = 20;
 const maxSize = 100; // Tamaño máximo de la cola
 
 let snake = new Queue(maxSize);
 snake.create();
-snake.enqueue({ x: 9 * box, y: 9 * box }); // Inicializar la serpiente con un segmento
+snake.enqueue({ x: 9 * box, y: 9 * box });
 
-let direction = 'RIGHT';
+let direction = "RIGHT";
 let food = {
     x: Math.floor(Math.random() * 20) * box,
     y: Math.floor(Math.random() * 20) * box
 };
 
-document.addEventListener('keydown', directionControl);
-
+document.addEventListener("keydown", directionControl);
 function directionControl(event) {
-    if (event.keyCode === 37 && direction !== 'RIGHT') direction = 'LEFT';
-    if (event.keyCode === 38 && direction !== 'DOWN') direction = 'UP';
-    if (event.keyCode === 39 && direction !== 'LEFT') direction = 'RIGHT';
-    if (event.keyCode === 40 && direction !== 'UP') direction = 'DOWN';
+    if (event.keyCode === 37 && direction !== "RIGHT") direction = "LEFT";
+    if (event.keyCode === 38 && direction !== "DOWN") direction = "UP";
+    if (event.keyCode === 39 && direction !== "LEFT") direction = "RIGHT";
+    if (event.keyCode === 40 && direction !== "UP") direction = "DOWN";
+}
+
+function collision(head, arr) {
+    for (let i = 0; i < arr.length; i++) {
+        if (head.x === arr[i].x && head.y === arr[i].y) return true;
+    }
+    return false;
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const snakeParts = snake.getItems();
 
-    // Dibujar la serpiente
-    let snakeArray = snake.items; // Acceder a los elementos de la cola
-    for (let i = 0; i < snakeArray.length; i++) {
-        ctx.fillStyle = (i === 0) ? 'green' : 'lightgreen';
-        ctx.fillRect(snakeArray[i].x, snakeArray[i].y, box, box);
-        ctx.strokeStyle = 'darkgreen';
-        ctx.strokeRect(snakeArray[i].x, snakeArray[i].y, box, box);
+    for (let i = 0; i < snake.size(); i++) {
+        ctx.fillStyle = (i === 0) ? "green" : "lightgreen";
+        ctx.fillRect(snakeParts[i].x, snakeParts[i].y, box, box);
+        ctx.strokeStyle = "darkgreen";
+        ctx.strokeRect(snakeParts[i].x, snakeParts[i].y, box, box);
     }
 
-    // Dibujar la comida
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = "red";
     ctx.fillRect(food.x, food.y, box, box);
 
-    // Mover la serpiente
-    let snakeHead = snake.front();
-    let snakeX = snakeHead.x;
-    let snakeY = snakeHead.y;
+    const head = snakeParts[snake.size() - 1];
+    let snakeX = head.x;
+    let snakeY = head.y;
 
-    if (direction === 'LEFT') snakeX -= box;
-    if (direction === 'UP') snakeY -= box;
-    if (direction === 'RIGHT') snakeX += box;
-    if (direction === 'DOWN') snakeY += box;
+    if (direction === "LEFT") snakeX -= box;
+    if (direction === "UP")   snakeY -= box;
+    if (direction === "RIGHT") snakeX += box;
+    if (direction === "DOWN") snakeY += box;
 
-    // Comprobar si come
     if (snakeX === food.x && snakeY === food.y) {
         food = {
             x: Math.floor(Math.random() * 20) * box,
@@ -113,28 +121,19 @@ function draw() {
     }
 
     const newHead = { x: snakeX, y: snakeY };
-
-    // Comprobar colisiones
-    if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake.items)) {
+    if (
+        snakeX < 0 || snakeY < 0 ||
+        snakeX >= canvas.width || snakeY >= canvas.height ||
+        collision(newHead, snakeParts)
+    ) {
         clearInterval(game);
-        alert('Game Over!');
+        alert("Game Over!");
     }
 
     snake.enqueue(newHead);
-
-    // Mostrar puntuación
-    ctx.fillStyle = 'black';
-    ctx.font = '20px Arial';
-    ctx.fillText('Score: ' + (snake.size() - 1), 10, 20);
-}
-
-function collision(head, array) {
-    for (let i = 0; i < array.length; i++) {
-        if (head.x === array[i].x && head.y === array[i].y) {
-            return true;
-        }
-    }
-    return false;
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText("Score: " + (snake.size() - 1), 10, 20);
 }
 
 let game = setInterval(draw, 100);
